@@ -1,0 +1,292 @@
+Webpack Bundler Setup Guide
+
+1- npm i -D webpack webpack-cli
+
+basic js and css webpack.config.js file
+
+const path = require("path");
+
+module.exports = {
+  mode: "development",
+  entry: {
+    bundle: path.resolve(__dirname, "src/index.js"),
+  },
+  output: {
+    path: path.resolve(__dirname, "dist"),
+    //   [name] = bundle in this case, declared in the entry object
+    filename: "[name].js",
+  },
+};
+
+For Sass
+
+2- npm i -D sass style-loader css-loader sass-loader
+
+const path = require("path");
+
+module.exports = {
+  mode: "development",
+  entry: {
+    bundle: path.resolve(__dirname, "src/index.js"),
+  },
+  output: {
+    path: path.resolve(__dirname, "dist"),
+    //   [name] = bundle in this case, declared in the entry object
+    filename: "[name].js",
+  },
+  module: {
+    rules: [
+      {
+        test: /\.scss$/,
+        use: ["style-loader", "css-loader", "sass-loader"],
+      },
+    ],
+  },
+};
+
+adding pluggin
+- This pluggin will enable automatic distruction of the dist folder and it will then recreate it with all the necessary file.
+
+
+3- npm install -D html-webpack-plugin
+
+const path = require("path");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+
+module.exports = {
+  mode: "development",
+  entry: {
+    bundle: path.resolve(__dirname, "src/index.js"),
+  },
+  output: {
+    path: path.resolve(__dirname, "dist"),
+    //   [name] = bundle in this case, declared in the entry object
+    filename: "[name].js",
+  },
+  module: {
+    rules: [
+      {
+        test: /\.scss$/,
+        use: ["style-loader", "css-loader", "sass-loader"],
+      },
+    ],
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      title: "Webpack App",
+      filename: "index.html",
+      template: "src/template.html",
+    }),
+  ],
+};
+
+- The src/template.html file 
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= htmlWebpackPlugin.options.title%></title>
+  </head>
+  <body>
+    <div class="container">
+      <h3>Don't Laugh Challenge</h3>
+      <div id="joke" class="joke"></div>
+      <button id="jokeBtn" class="btn">Get Another Joke</button>
+    </div>
+  </body>
+</html>
+
+
+dev Server
+
+4-     "dev": "webpack serve"
+		npm run dev
+		will ask if you want to install -> npm install -D webpack-dev-server
+		you do yes
+		then back in webpack.config.js you add the devServer: {} configurations
+		
+const path = require("path");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+
+module.exports = {
+  mode: "development",
+  entry: {
+    bundle: path.resolve(__dirname, "src/index.js"),
+  },
+  output: {
+    path: path.resolve(__dirname, "dist"),
+    // [name] = bundle in this case, declared in the entry object
+    // [contentHash] for better caching
+    filename: "[name][contenthash].js",
+  },
+  devServer: {
+    static: {
+      directory: path.resolve(__dirname, "dist"),
+    },
+    port: 3000,
+    open: true,
+    hot: true,
+    compress: true,
+    historyApiFallback: true,
+  },
+  module: {
+    rules: [
+      {
+        test: /\.scss$/,
+        use: ["style-loader", "css-loader", "sass-loader"],
+      },
+    ],
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      title: "Webpack App",
+      filename: "index.html",
+      template: "src/template.html",
+    }),
+  ],
+};
+
+
+for devtools add this line just after output
+
+  output: {
+    path: path.resolve(__dirname, "dist"),
+    // [name] = bundle in this case, declared in the entry object
+    // [contentHash] for better caching
+    filename: "[name][contenthash].js",
+    clean: true,
+  },
+  devtool: "source-map",
+  
+  this will help with debugging.
+
+6- Now to make your code compatible with older browser you will need babel loader
+	
+	npm i -D babel-loader @babel/core @babel/preset-env 
+
+const path = require("path");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+
+module.exports = {
+  mode: "development",
+  entry: {
+    bundle: path.resolve(__dirname, "src/index.js"),
+  },
+  output: {
+    path: path.resolve(__dirname, "dist"),
+    // [name] = bundle in this case, declared in the entry object
+    // [contentHash] for better caching
+    filename: "[name][contenthash].js",
+    clean: true,
+  },
+  devtool: "source-map",
+  devServer: {
+    static: {
+      directory: path.resolve(__dirname, "dist"),
+    },
+    port: 3000,
+    open: true,
+    hot: true,
+    compress: true,
+    historyApiFallback: true,
+  },
+  module: {
+    rules: [
+      {
+        test: /\.scss$/,
+        use: ["style-loader", "css-loader", "sass-loader"],
+      },
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: ["@babel/preset-env"],
+          },
+        },
+      },
+    ],
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      title: "Webpack App",
+      filename: "index.html",
+      template: "src/template.html",
+    }),
+  ],
+};
+
+7- Loading images 
+	/src/assets
+	
+const path = require("path");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const { type } = require("os");
+
+module.exports = {
+  mode: "development",
+  entry: {
+    bundle: path.resolve(__dirname, "src/index.js"),
+  },
+  output: {
+    path: path.resolve(__dirname, "dist"),
+    // [name] = bundle in this case, declared in the entry object
+    // [contentHash] for better caching
+    filename: "[name][contenthash].js",
+    clean: true,
+	//This was added so that the image doesn't get renamed
+    assetModuleFilename: "[name][ext]",
+  },
+  devtool: "source-map",
+  devServer: {
+    static: {
+      directory: path.resolve(__dirname, "dist"),
+    },
+    port: 3000,
+    open: true,
+    hot: true,
+    compress: true,
+    historyApiFallback: true,
+  },
+  module: {
+    rules: [
+      {
+        test: /\.scss$/,
+        use: ["style-loader", "css-loader", "sass-loader"],
+      },
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: ["@babel/preset-env"],
+          },
+        },
+      },
+	  //This was added
+      {
+        test: /\.(png|svg|jpg|jpeg|gif)$/i,
+        type: "asset/resource",
+      },
+    ],
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      title: "Webpack App",
+      filename: "index.html",
+      template: "src/template.html",
+    }),
+  ],
+};
+
+9- webpack bundle analyzer 
+
+	plugin show you a screen of what your application is built from and what takes up the most space etc.. bundeling details
+	
+	npm i -D webpack-bundle-analyzer
+	
+	
